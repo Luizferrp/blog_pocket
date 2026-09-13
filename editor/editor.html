@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Admin - Editor Estático</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+
+  <header class="admin-header">
+    <h1>Editor File-Based</h1>
+    <div class="github-config">
+      <input type="text" id="gh-owner" placeholder="Dono/Org (ex: myuser)" />
+      <input type="text" id="gh-repo" placeholder="Repositório (ex: meu-acervo)" />
+      <input type="password" id="gh-token" placeholder="Personal Access Token" />
+    </div>
+  </header>
+
+  <div class="editor-layout">
+    
+    <!-- Sidebar: Lista de Arquivos e Taxonomia -->
+    <aside class="sidebar">
+      <button id="btn-new-article" class="btn-primary" style="width: 100%; margin-bottom: 1rem;">+ Novo Artigo</button>
+      
+      <h3>Acervo</h3>
+      <ul id="article-list" class="article-list">
+        <li>Carregando...</li>
+      </ul>
+
+      <h3 style="margin-top: 2rem;">Grupos / Categorias</h3>
+      <div id="category-tree" class="category-tree">
+        <!-- Renderizado via JS com checkboxes -->
+      </div>
+      <div style="margin-top: 10px;">
+        <input type="text" id="new-category-name" placeholder="Nova Subcategoria..." style="width: 100%; margin-bottom: 5px;">
+        <button id="btn-add-category" class="btn-secondary" style="width: 100%;">Adicionar à Raiz</button>
+      </div>
+    </aside>
+
+    <!-- Área Principal: O Editor -->
+    <main class="editor-main">
+      <div id="status-panel" class="status-panel hidden"></div>
+      
+      <input type="text" id="editor-title" class="editor-title" placeholder="Título do Artigo" disabled />
+      
+      <textarea id="editor-content" class="editor-content" placeholder="Conteúdo Markdown do artigo..." disabled></textarea>
+      
+      <div class="editor-actions">
+        <span id="current-file-id" class="text-muted">Nenhum arquivo selecionado</span>
+        <button id="btn-save-pr" class="btn-success" disabled>Salvar e Gerar MR/PR</button>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="editor.js"></script>
+</body>
+</html>

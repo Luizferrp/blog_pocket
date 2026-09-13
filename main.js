@@ -1,4 +1,4 @@
-import { TreeManager } from './src/tree.js';
+import { TaxonomyTree, TreeNode } from './src/tree.js'; // Ajuste 1: Importar a classe correta e o TreeNode para checagem de tipo
 
 /**
  * Estado Global em Memória no Runtime
@@ -11,7 +11,7 @@ const state = {
 };
 
 /**
- * Mapeamento do DOM
+ * Mapeamento do DOM (Mantido igual)
  */
 const DOM = {
   taxonomyTree: document.getElementById('taxonomy-tree'),
@@ -35,7 +35,6 @@ const DOM = {
  */
 async function init() {
   try {
-    // 1. Carrega tree.dat e articles.dat em paralelo
     const [treeRes, articlesRes] = await Promise.all([
       fetch('/cache/tree.dat'),
       fetch('/cache/articles.dat')
@@ -48,20 +47,17 @@ async function init() {
     const treeBuffer = await treeRes.arrayBuffer();
     const articlesJson = await articlesRes.json();
 
-    // 2. Inicializa TreeManager e Catálogo de Artigos
-    state.treeManager = new TreeManager();
-    state.treeManager.deserialize(treeBuffer);
+    // Ajuste 2: Instanciar a classe correta e desserializar
+    state.treeManager = new TaxonomyTree();
+    // A API arrayBuffer() retorna ArrayBuffer, o tree.js espera Uint8Array
+    state.treeManager.deserialize(new Uint8Array(treeBuffer)); 
     
-    // Converte o catálogo para busca rápida O(1) por id
     articlesJson.forEach(art => {
       state.articlesCatalog[art.article_id] = art;
     });
 
-    // 3. Monta os componentes da página inicial
     renderTaxonomyTree();
     renderLuckySection();
-
-    // 4. Registrar Eventos
     bindEvents();
 
   } catch (err) {
@@ -74,26 +70,26 @@ async function init() {
  * Renderiza a árvore de categorias (Sidebar)
  */
 function renderTaxonomyTree() {
-  const treeData = state.treeManager.getTreeStructure();
   DOM.taxonomyTree.innerHTML = '';
-  
-  const rootUl = buildTreeUI(treeData);
+  // Ajuste 3: Passar o nó raiz real para a função de build
+  const rootUl = buildTreeUI(state.treeManager.root);
   DOM.taxonomyTree.appendChild(rootUl);
 }
 
+// Ajuste 4: Refatoração completa para ler a estrutura de children da TreeNode
 function buildTreeUI(node) {
   const ul = document.createElement('ul');
 
-  if (node.categories) {
-    Object.keys(node.categories).forEach(catName => {
-      const li = document.createElement('li');
-      li.className = 'tree-node';
-      
+  node.children.forEach(child => {
+    const li = document.createElement('li');
+    li.className = 'tree-node';
+
+    if (child instanceof TreeNode) { // É uma subcategoria
       const titleSpan = document.createElement('span');
       titleSpan.className = 'tree-node-title';
-      titleSpan.textContent = `📁 ${catName}`;
+      titleSpan.textContent = `📁 ${child.name}`;
       
-      const childUl = buildTreeUI(node.categories[catName]);
+      const childUl = buildTreeUI(child);
       childUl.classList.add('hidden'); // Colapsado por padrão
 
       titleSpan.addEventListener('click', (e) => {
@@ -103,31 +99,24 @@ function buildTreeUI(node) {
 
       li.appendChild(titleSpan);
       li.appendChild(childUl);
-      ul.appendChild(li);
-    });
-  }
 
-  if (node.articles) {
-    node.articles.forEach(articleId => {
-      const li = document.createElement('li');
-      li.className = 'tree-node';
-      
-      const meta = state.articlesCatalog[articleId] || { title: articleId };
+    } else if (typeof child === 'string') { // É um artigo (ID)
+      const meta = state.articlesCatalog[child] || { title: child };
       
       const a = document.createElement('a');
       a.className = 'article-link';
       a.textContent = `📄 ${meta.title}`;
-      a.dataset.id = articleId;
+      a.dataset.id = child;
       
       a.addEventListener('click', (e) => {
         e.preventDefault();
-        loadAndRenderArticle(articleId);
+        loadAndRenderArticle(child);
       });
 
       li.appendChild(a);
-      ul.appendChild(li);
-    });
-  }
+    }
+    ul.appendChild(li);
+  });
 
   return ul;
 }
@@ -136,25 +125,32 @@ function buildTreeUI(node) {
  * Renderiza a seção "Estou com sorte hoje" usando as raízes da taxonomia
  */
 function renderLuckySection() {
-  const roots = state.treeManager.getRootCategories();
   DOM.luckyContainer.innerHTML = '';
 
+  // Ajuste 5: Obter as categorias raízes diretamente de root.children
+  const rootCategories = state.treeManager.root.children.filter(c => c instanceof TreeNode);
+  
   // Seleciona até 4 categorias raízes de forma aleatória
-  const shuffled = [...roots].sort(() => 0.5 - Math.random()).slice(0, 4);
+  const shuffled = [...rootCategories].sort(() => 0.5 - Math.random()).slice(0, 4);
 
   shuffled.forEach(category => {
+    // Busca os artigos dentro da categoria de forma recursiva para mostrar o contador correto
+    const articlesIds = state.treeManager.getArticlesInCategory(category, true);
+    
     const card = document.createElement('div');
     card.className = 'lucky-card';
     card.innerHTML = `
       <h3>${category.name}</h3>
-      <small>${category.articleCount || 0} artigos</small>
+      <small>${articlesIds.length} artigos</small>
     `;
     card.addEventListener('click', () => {
-      showCategoryArticles(category.name, category.articles);
+      showCategoryArticles(category.name, articlesIds); // Passa a lista completa de IDs
     });
     DOM.luckyContainer.appendChild(card);
   });
 }
+
+// ... Restante do arquivo main.js (showCategoryArticles, loadAndRenderArticle, bindEvents) permanece inalterado ...
 
 /**
  * Exibe a lista de artigos de uma categoria selecionada
