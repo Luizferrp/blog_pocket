@@ -61,7 +61,7 @@ async function init() {
   
   // 1.2 Tenta carregar os dados (Tolerante a repositório vazio)
   try {
-    const treeRes = await fetch('/cache/tree.dat').catch(() => null);
+    const treeRes = await fetch('./../cache/tree.dat').catch(() => null);
     if (treeRes && treeRes.ok) {
       const buffer = await treeRes.arrayBuffer();
       if (buffer.byteLength > 0 && typeof state.treeManager.deserialize === 'function') {
@@ -80,7 +80,7 @@ async function init() {
       }
     }
 
-    const htreeRes = await fetch('/cache/htree.dat').catch(() => null);
+    const htreeRes = await fetch('./../cache/htree.dat').catch(() => null);
     if (htreeRes && htreeRes.ok) state.htreeData = await htreeRes.arrayBuffer();
 
   } catch (err) {
