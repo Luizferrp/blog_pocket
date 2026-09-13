@@ -1,10 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
-<header>
-    <script type="module" src="src/compressor.js"></script>
-    <script type="module" src=main.js></script>
-</header>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplicação Web - Interface Pública</title>
+  <link rel="stylesheet" href="index.css" />
+</head>
 <body>
-    <h1>Hello World</h1>
+  <!-- Header & Navegação -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo">MeuApp</a>
+      <nav class="nav-links">
+        <a href="#home" class="nav-link active">Início</a>
+        <a href="#recursos" class="nav-link">Recursos</a>
+        <button id="btn-action-primary" class="btn btn-primary">Começar agora</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <h1>Conectando suas Soluções em um só lugar</h1>
+      <p>Acesse conteúdos em tempo real, gerencie recursos e acompanhe métricas de forma simples.</p>
+      <div class="hero-actions">
+        <button id="btn-fetch-data" class="btn btn-primary">Carregar Dados</button>
+        <button id="btn-explore" class="btn btn-secondary">Explorar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conteúdo Principal / Feed Dinâmico -->
+  <main class="container main-content">
+    <section class="controls-bar">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar registros..." />
+      </div>
+      <div class="filter-box">
+        <select id="filter-select">
+          <option value="all">Todos os tipos</option>
+          <option value="active">Ativos</option>
+          <option value="archived">Arquivados</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Indicador de Carregamento -->
+    <div id="loading-spinner" class="spinner-container hidden">
+      <div class="spinner"></div>
+      <p>Carregando dados...</p>
+    </div>
+
+    <!-- Mensagens de Erro/Alerta -->
+    <div id="status-message" class="alert-box hidden"></div>
+
+    <!-- Grid de Cards Renderizados Dinamicamente -->
+    <section id="cards-grid" class="cards-grid">
+      <!-- Inserido dinamicamente via JS -->
+    </section>
+  </main>
+
+  <!-- Modal Detalhes/Formulário -->
+  <div id="app-modal" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3 id="modal-title">Detalhes do Item</h3>
+        <button id="btn-close-modal" class="btn-icon">&times;</button>
+      </header>
+      <div id="modal-body" class="modal-body">
+        <!-- Conteúdo do Modal -->
+      </div>
+      <footer class="modal-footer">
+        <button id="btn-modal-cancel" class="btn btn-secondary">Fechar</button>
+        <button id="btn-modal-confirm" class="btn btn-primary">Confirmar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 MeuApp. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
 </body>
 </html>
