@@ -1,4 +1,4 @@
-import { HuffmanCompressor } from './compressor.js';
+import { HuffmanCompressor } from './src/compressor.js';
 
 const compressor = new HuffmanCompressor();
 
