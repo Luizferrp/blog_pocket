@@ -1,195 +1,254 @@
+import { TreeManager } from './src/tree.js';
+
 /**
- * Estado da Aplicação
+ * Estado Global em Memória no Runtime
  */
 const state = {
-  items: [],
-  filteredItems: [],
-  isLoading: false,
-  selectedItem: null,
+  treeManager: null,       // Instância da classe de Taxonomia
+  articlesCatalog: {},     // Mapeamento id -> metadata (articles.dat)
+  htreeData: null,         // Árvore Huffman compartilhada (carregada sob demanda)
+  compressorModule: null,  // Módulo compressor.js (importado sob demanda)
 };
 
 /**
- * Seletores do DOM
+ * Mapeamento do DOM
  */
 const DOM = {
-  btnFetchData: document.getElementById('btn-fetch-data'),
+  taxonomyTree: document.getElementById('taxonomy-tree'),
+  luckyContainer: document.getElementById('lucky-container'),
+  luckySection: document.getElementById('lucky-section'),
+  categoryArticlesSection: document.getElementById('category-articles-section'),
+  currentCategoryTitle: document.getElementById('current-category-title'),
+  articlesList: document.getElementById('articles-list'),
+  articleView: document.getElementById('article-view'),
+  articleTitle: document.getElementById('article-title'),
+  articleMeta: document.getElementById('article-meta'),
+  articleBody: document.getElementById('article-body'),
+  articleStatus: document.getElementById('article-status'),
+  searchForm: document.getElementById('search-form'),
   searchInput: document.getElementById('search-input'),
-  filterSelect: document.getElementById('filter-select'),
-  cardsGrid: document.getElementById('cards-grid'),
-  loadingSpinner: document.getElementById('loading-spinner'),
-  statusMessage: document.getElementById('status-message'),
-  modal: document.getElementById('app-modal'),
-  modalTitle: document.getElementById('modal-title'),
-  modalBody: document.getElementById('modal-body'),
-  btnCloseModal: document.getElementById('btn-close-modal'),
-  btnModalCancel: document.getElementById('btn-modal-cancel'),
-  btnModalConfirm: document.getElementById('btn-modal-confirm'),
+  brandLogo: document.getElementById('brand-logo'),
 };
 
 /**
- * API Service (Integração com backend/Fase 3)
+ * Inicialização do Runtime (Fase 4)
  */
-const API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Endpoint de exemplo
+async function init() {
+  try {
+    // 1. Carrega tree.dat e articles.dat em paralelo
+    const [treeRes, articlesRes] = await Promise.all([
+      fetch('/cache/tree.dat'),
+      fetch('/cache/articles.dat')
+    ]);
 
-async function fetchItemsFromAPI() {
-  setLoading(true);
-  hideStatus();
+    if (!treeRes.ok || !articlesRes.ok) {
+      throw new Error('Falha ao carregar os dados de cache do sistema.');
+    }
+
+    const treeBuffer = await treeRes.arrayBuffer();
+    const articlesJson = await articlesRes.json();
+
+    // 2. Inicializa TreeManager e Catálogo de Artigos
+    state.treeManager = new TreeManager();
+    state.treeManager.deserialize(treeBuffer);
+    
+    // Converte o catálogo para busca rápida O(1) por id
+    articlesJson.forEach(art => {
+      state.articlesCatalog[art.article_id] = art;
+    });
+
+    // 3. Monta os componentes da página inicial
+    renderTaxonomyTree();
+    renderLuckySection();
+
+    // 4. Registrar Eventos
+    bindEvents();
+
+  } catch (err) {
+    console.error('Erro na inicialização:', err);
+    DOM.taxonomyTree.innerHTML = `<p class="loading-text">Erro ao carregar o acervo.</p>`;
+  }
+}
+
+/**
+ * Renderiza a árvore de categorias (Sidebar)
+ */
+function renderTaxonomyTree() {
+  const treeData = state.treeManager.getTreeStructure();
+  DOM.taxonomyTree.innerHTML = '';
+  
+  const rootUl = buildTreeUI(treeData);
+  DOM.taxonomyTree.appendChild(rootUl);
+}
+
+function buildTreeUI(node) {
+  const ul = document.createElement('ul');
+
+  if (node.categories) {
+    Object.keys(node.categories).forEach(catName => {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'tree-node-title';
+      titleSpan.textContent = `📁 ${catName}`;
+      
+      const childUl = buildTreeUI(node.categories[catName]);
+      childUl.classList.add('hidden'); // Colapsado por padrão
+
+      titleSpan.addEventListener('click', (e) => {
+        e.stopPropagation();
+        childUl.classList.toggle('hidden');
+      });
+
+      li.appendChild(titleSpan);
+      li.appendChild(childUl);
+      ul.appendChild(li);
+    });
+  }
+
+  if (node.articles) {
+    node.articles.forEach(articleId => {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      
+      const meta = state.articlesCatalog[articleId] || { title: articleId };
+      
+      const a = document.createElement('a');
+      a.className = 'article-link';
+      a.textContent = `📄 ${meta.title}`;
+      a.dataset.id = articleId;
+      
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadAndRenderArticle(articleId);
+      });
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+  }
+
+  return ul;
+}
+
+/**
+ * Renderiza a seção "Estou com sorte hoje" usando as raízes da taxonomia
+ */
+function renderLuckySection() {
+  const roots = state.treeManager.getRootCategories();
+  DOM.luckyContainer.innerHTML = '';
+
+  // Seleciona até 4 categorias raízes de forma aleatória
+  const shuffled = [...roots].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+  shuffled.forEach(category => {
+    const card = document.createElement('div');
+    card.className = 'lucky-card';
+    card.innerHTML = `
+      <h3>${category.name}</h3>
+      <small>${category.articleCount || 0} artigos</small>
+    `;
+    card.addEventListener('click', () => {
+      showCategoryArticles(category.name, category.articles);
+    });
+    DOM.luckyContainer.appendChild(card);
+  });
+}
+
+/**
+ * Exibe a lista de artigos de uma categoria selecionada
+ */
+function showCategoryArticles(categoryName, articleIds) {
+  DOM.luckySection.classList.add('hidden');
+  DOM.articleView.classList.add('hidden');
+  DOM.categoryArticlesSection.classList.remove('hidden');
+
+  DOM.currentCategoryTitle.textContent = categoryName;
+  DOM.articlesList.innerHTML = '';
+
+  articleIds.forEach(id => {
+    const meta = state.articlesCatalog[id] || { title: id };
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="#" class="article-link">${meta.title}</a>`;
+    li.querySelector('a').addEventListener('click', (e) => {
+      e.preventDefault();
+      loadAndRenderArticle(id);
+    });
+    DOM.articlesList.appendChild(li);
+  });
+}
+
+/**
+ * Carregamento Lazy e Descompressão do Artigo
+ */
+async function loadAndRenderArticle(articleId) {
+  const meta = state.articlesCatalog[articleId] || { title: articleId, created: 'N/A' };
+
+  // 1. Apresenta o Layout do artigo imediatamente com Metadados de articles.dat
+  DOM.luckySection.classList.add('hidden');
+  DOM.categoryArticlesSection.classList.add('hidden');
+  DOM.articleView.classList.remove('hidden');
+  
+  DOM.articleTitle.textContent = meta.title;
+  DOM.articleMeta.textContent = `ID: ${articleId} | Modificado em: ${meta.modified || 'N/A'}`;
+  DOM.articleBody.innerHTML = '';
+  DOM.articleStatus.classList.remove('hidden');
 
   try {
-    const response = await fetch(`${API_URL}?_limit=9`);
-    if (!response.ok) throw new Error('Falha ao obter dados da API');
+    // 2. Carrega htree.dat e compressor.js sob demanda (Lazy Loading)
+    if (!state.htreeData || !state.compressorModule) {
+      const [htreeRes, compressorMod] = await Promise.all([
+        fetch('/cache/htree.dat'),
+        import('./src/compressor.js')
+      ]);
 
-    const data = await response.json();
-    
-    // Mapeamento/Normalização dos dados recebidos
-    state.items = data.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.body,
-      status: item.id % 2 === 0 ? 'active' : 'archived',
-    }));
+      if (!htreeRes.ok) throw new Error('Erro ao baixar a árvore de Huffman.');
 
-    state.filteredItems = [...state.items];
-    renderCards(state.filteredItems);
-  } catch (error) {
-    showStatus(error.message || 'Ocorreu um erro inesperado.', 'error');
-  } finally {
-    setLoading(false);
+      state.htreeData = await htreeRes.arrayBuffer();
+      state.compressorModule = compressorMod;
+    }
+
+    // 3. Baixa o arquivo comprimido .dat do artigo
+    const articleRes = await fetch(`/articles/${articleId}.dat`);
+    if (!articleRes.ok) throw new Error('Arquivo do artigo não encontrado.');
+
+    const compressedBuffer = await articleRes.arrayBuffer();
+
+    // 4. Descomprime usando o compressor.js e a htree.dat global
+    const textContent = state.compressorModule.decode(compressedBuffer, state.htreeData);
+
+    // 5. Renderiza o conteúdo descomprimido
+    DOM.articleStatus.classList.add('hidden');
+    DOM.articleBody.innerText = textContent;
+
+  } catch (err) {
+    console.error(err);
+    DOM.articleStatus.classList.add('hidden');
+    DOM.articleBody.innerHTML = `<p style="color: red;">Erro ao carregar o conteúdo do artigo.</p>`;
   }
-}
-
-/**
- * Renderização e Modificadores do DOM
- */
-function renderCards(items) {
-  DOM.cardsGrid.innerHTML = '';
-
-  if (items.length === 0) {
-    DOM.cardsGrid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">
-        Nenhum registro encontrado.
-      </div>`;
-    return;
-  }
-
-  items.forEach((item) => {
-    const cardEl = document.createElement('article');
-    cardEl.className = 'card';
-    cardEl.innerHTML = `
-      <div>
-        <h2 class="card-title">${escapeHTML(item.title)}</h2>
-        <p class="card-body">${escapeHTML(item.description)}</p>
-      </div>
-      <div class="card-footer">
-        <button class="btn btn-secondary btn-detail" data-id="${item.id}">Ver detalhes</button>
-      </div>
-    `;
-    DOM.cardsGrid.appendChild(cardEl);
-  });
-}
-
-function setLoading(isLoading) {
-  state.isLoading = isLoading;
-  if (isLoading) {
-    DOM.loadingSpinner.classList.remove('hidden');
-    DOM.cardsGrid.classList.add('hidden');
-  } else {
-    DOM.loadingSpinner.classList.add('hidden');
-    DOM.cardsGrid.classList.remove('hidden');
-  }
-}
-
-function showStatus(msg, type = 'error') {
-  DOM.statusMessage.textContent = msg;
-  DOM.statusMessage.className = `alert-box ${type}`;
-  DOM.statusMessage.classList.remove('hidden');
-}
-
-function hideStatus() {
-  DOM.statusMessage.classList.add('hidden');
-}
-
-/**
- * Filtros e Busca Local
- */
-function applyFilters() {
-  const query = DOM.searchInput.value.toLowerCase().trim();
-  const filterType = DOM.filterSelect.value;
-
-  state.filteredItems = state.items.filter((item) => {
-    const matchesQuery = item.title.toLowerCase().includes(query) || 
-                         item.description.toLowerCase().includes(query);
-    const matchesFilter = filterType === 'all' || item.status === filterType;
-
-    return matchesQuery && matchesFilter;
-  });
-
-  renderCards(state.filteredItems);
-}
-
-/**
- * Controle de Modal
- */
-function openModal(item) {
-  state.selectedItem = item;
-  DOM.modalTitle.textContent = item.title;
-  DOM.modalBody.innerHTML = `
-    <p><strong>ID:</strong> ${item.id}</p>
-    <p><strong>Status:</strong> ${item.status}</p>
-    <br/>
-    <p>${escapeHTML(item.description)}</p>
-  `;
-  DOM.modal.classList.remove('hidden');
-}
-
-function closeModal() {
-  DOM.modal.classList.add('hidden');
-  state.selectedItem = null;
-}
-
-/**
- * Segurança / Sanitização simples
- */
-function escapeHTML(str) {
-  return str.replace(/[&<>'"]/g, 
-    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-  );
 }
 
 /**
  * Event Listeners
  */
-function initEvents() {
-  DOM.btnFetchData.addEventListener('click', fetchItemsFromAPI);
-  
-  DOM.searchInput.addEventListener('input', applyFilters);
-  DOM.filterSelect.addEventListener('change', applyFilters);
-
-  // Delegação de evento nos cards
-  DOM.cardsGrid.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-detail');
-    if (btn) {
-      const id = Number(btn.dataset.id);
-      const item = state.items.find((i) => i.id === id);
-      if (item) openModal(item);
-    }
+function bindEvents() {
+  DOM.brandLogo.addEventListener('click', (e) => {
+    e.preventDefault();
+    DOM.articleView.classList.add('hidden');
+    DOM.categoryArticlesSection.classList.add('hidden');
+    DOM.luckySection.classList.remove('hidden');
   });
 
-  // Modal events
-  DOM.btnCloseModal.addEventListener('click', closeModal);
-  DOM.btnModalCancel.addEventListener('click', closeModal);
-  DOM.btnModalConfirm.addEventListener('click', () => {
-    alert(`Ação confirmada para o item #${state.selectedItem?.id}`);
-    closeModal();
-  });
+  // Preparação para a Fase 5 (Busca)
+  DOM.searchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = DOM.searchInput.value.trim();
+    if (!query) return;
 
-  // Fechar modal clicando fora
-  DOM.modal.addEventListener('click', (e) => {
-    if (e.target === DOM.modal) closeModal();
+    alert(`A busca por "${query}" será acionada na Fase 5 (Carregando matrix.dat + hyper_compressor.js)`);
   });
 }
 
-// Inicialização da aplicação
-document.addEventListener('DOMContentLoaded', () => {
-  initEvents();
-});
+// Inicializa a aplicação
+document.addEventListener('DOMContentLoaded', init);
