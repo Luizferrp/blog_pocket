@@ -36,8 +36,8 @@ const DOM = {
 async function init() {
   try {
     const [treeRes, articlesRes] = await Promise.all([
-      fetch('/cache/tree.dat'),
-      fetch('/cache/articles.dat')
+      fetch('./cache/tree.dat'),
+      fetch('./cache/articles.dat')
     ]);
 
     if (!treeRes.ok || !articlesRes.ok) {
@@ -195,7 +195,7 @@ async function loadAndRenderArticle(articleId) {
     // 2. Carrega htree.dat e compressor.js sob demanda (Lazy Loading)
     if (!state.htreeData || !state.compressorModule) {
       const [htreeRes, compressorMod] = await Promise.all([
-        fetch('/cache/htree.dat'),
+        fetch('./cache/htree.dat'),
         import('./src/compressor.js')
       ]);
 
