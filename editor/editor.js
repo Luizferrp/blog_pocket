@@ -69,7 +69,7 @@ async function init() {
       }
     }
     
-    const articlesRes = await fetch('/cache/articles.dat').catch(() => null);
+    const articlesRes = await fetch('./../cache/articles.dat').catch(() => null);
     if (articlesRes && articlesRes.ok) {
       const text = await articlesRes.text();
       if (text.trim().length > 0) {
