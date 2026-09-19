@@ -53,7 +53,7 @@ async function init() {
   }
 
   try {
-    state.compressorModule = await import('./../src/compressor.js');
+    state.compressorModule = await import('./../src/compressor.js').HuffmanCompressor;
   } catch(e) {
     console.warn("⚠️ ./../src/compressor.js não encontrado. Texto puro ativado.");
     state.compressorModule = { decode: (buf) => new TextDecoder().decode(buf) };
