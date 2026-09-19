@@ -182,7 +182,7 @@ async function loadArticle(articleId) {
   showStatus("Lendo arquivo...");
 
   try {
-    const res = await fetch(`/blog_pocket/content/${articleId}.md`).catch(() => null);
+    const res = await fetch(`/blog_pocket/articles/${articleId}.md`).catch(() => null);
     if (res && res.ok) {
       const buffer = await res.arrayBuffer();
       DOM.editorContent.value = state.compressorModule.decode(buffer, state.htreeData);
@@ -226,7 +226,7 @@ DOM.btnSave.addEventListener('click', async () => {
     const filesToCommit = [
       { path: `cache/tree.dat`, content: treeBuffer, isBinary: true },
       { path: `cache/articles.dat`, content: articlesJsonStr, isBinary: false },
-      { path: `content/${articleId}.md`, content: content, isBinary: false }
+      { path: `articles/${articleId}.md`, content: content, isBinary: false }
     ];
 
     const github = new state.githubClientClass(owner, repo, token);
