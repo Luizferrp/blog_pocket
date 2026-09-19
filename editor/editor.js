@@ -182,7 +182,9 @@ async function loadArticle(articleId) {
   showStatus("Lendo arquivo...");
 
   try {
-    const res = await fetch(`/blog_pocket/articles/${articleId}.md`).catch(() => null);
+    file = `/blog_pocket/articles/${articleId}.md`;
+    console.log(file);
+    const res = await fetch(file).catch(() => null);
     if (res && res.ok) {
       const buffer = await res.arrayBuffer();
       DOM.editorContent.value = state.compressorModule.decode(buffer, state.htreeData);
