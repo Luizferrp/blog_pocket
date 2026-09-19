@@ -187,7 +187,7 @@ async function loadArticle(articleId) {
     const res = await fetch(file).catch(() => null);
     if (res && res.ok) {
       const buffer = await res.arrayBuffer();
-      DOM.editorContent.value = state.compressorModule.decode(buffer, state.htreeData);
+      DOM.editorContent.value = state.compressorModule.HuffmanCompressor.decode(buffer, state.htreeData);
     } else {
       throw new Error("Arquivo não encontrado localmente.");
     }
