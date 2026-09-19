@@ -182,7 +182,7 @@ async function loadArticle(articleId) {
   showStatus("Lendo arquivo...");
 
   try {
-    file = `/blog_pocket/articles/${articleId}.md`;
+    const file = `/blog_pocket/articles/${articleId}.md`;
     console.log(file);
     const res = await fetch(file).catch(() => null);
     if (res && res.ok) {
