@@ -53,7 +53,8 @@ async function init() {
   }
 
   try {
-    state.compressorModule = await import('./../src/compressor.js').HuffmanCompressor;
+    const { HuffmanCompressor } = await import('./../src/compressor.js');
+    state.compressorModule = new HuffmanCompressor();
   } catch(e) {
     console.warn("⚠️ ./../src/compressor.js não encontrado. Texto puro ativado.");
     state.compressorModule = { decode: (buf) => new TextDecoder().decode(buf) };
@@ -82,6 +83,17 @@ async function init() {
 
     const htreeRes = await fetch('./../cache/htree.dat').catch(() => null);
     if (htreeRes && htreeRes.ok) state.htreeData = await htreeRes.arrayBuffer();
+
+
+    if (!htreeRes.ok) {
+      throw new Error('Não foi possível carregar htree.dat');
+    }
+
+    const htreeBuffer = await htreeRes.arrayBuffer();
+
+    state.compressorModule.deserializeTree(
+      new Uint8Array(htreeBuffer)
+    );
 
   } catch (err) {
     console.warn("Erro ao buscar arquivos locais:", err);
