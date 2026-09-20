@@ -541,9 +541,6 @@ function createSearchResultCard(result) {
   const meta =
     state.articlesCatalog.get(articleId);
 
-  const title =
-    meta?.title || articleId;
-
   console.log(title, articleId)
 
   const card =
@@ -602,6 +599,7 @@ async function loadAndRenderArticle(
    * colocar sua implementação aqui.
    */
 
+  console.log(articleId);
   const meta =
     state.articlesCatalog.get(articleId);
 
