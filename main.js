@@ -30,9 +30,6 @@ const DOM = {
   brandLogo: document.getElementById('brand-logo'),
 };
 
-/**
- * Inicialização do Runtime (Fase 4)
- */
 async function init() {
   try {
     const [treeRes, articlesRes] = await Promise.all([
@@ -236,13 +233,12 @@ function bindEvents() {
     DOM.luckySection.classList.remove('hidden');
   });
 
-  // Preparação para a Fase 5 (Busca)
   DOM.searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const query = DOM.searchInput.value.trim();
     if (!query) return;
 
-    alert(`A busca por "${query}" será acionada na Fase 5 (Carregando matrix.dat + hyper_compressor.js)`);
+    alert(`A busca por "${query}" será acionada (Carregando search.dat + search.js)`);
   });
 }
 
