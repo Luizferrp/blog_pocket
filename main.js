@@ -532,11 +532,7 @@ function createSearchResultCard(result) {
   const meta =
     state.articlesCatalog.get(articleId);
 
-  if (meta != undefined){
-    const title = meta.title;
-  } else {
-    const title = articleId;
-  }
+  const title = articleId;
 
   const card =
     document.createElement("article");
