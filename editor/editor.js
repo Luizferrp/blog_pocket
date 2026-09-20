@@ -28,146 +28,85 @@ const DOM = {
 
 // --- 1. BOOTSTRAP (Carrega dependências e arquivos de forma segura) ---
 async function init() {
-  loadConfig();
-
-  // 1.1 Tenta importar os módulos. Se falhar, cria "mocks"
-  //     para a UI não travar.
+  loadConfig(); 
+  
+  // 1.1 Tenta importar os módulos. Se falhar, cria "mocks" (dublês) para a UI não travar.
   try {
     const treeMod = await import('./../src/tree.js');
     state.treeManager = new treeMod.TaxonomyTree();
-  } catch (e) {
+  } catch(e) {
     console.warn("⚠️ ./../src/tree.js não encontrado. Mock ativado.");
-
-    state.treeManager = {
-      root: { children: [] },
-      deserialize: () => {},
-      serialize: () => new Uint8Array(),
-      addCategory: () => {},
-      linkArticle: () => {},
-      unlinkArticle: () => {},
-      normalize: () => {}
+    state.treeManager = { 
+      root: { children: [] }, deserialize: () => {}, serialize: () => new Uint8Array(),
+      addCategory: () => {}, linkArticle: () => {}, unlinkArticle: () => {}, normalize: () => {}
     };
   }
 
   try {
     const ghMod = await import('./../src/github.js');
     state.githubClientClass = ghMod.GitHubClient;
-  } catch (e) {
+  } catch(e) {
     console.warn("⚠️ ./../src/github.js não encontrado. Mock ativado.");
-
-    state.githubClientClass = class {
-      createPullRequest() {
-        return Promise.resolve("https://github.com/mock/pull/1");
-      }
+    state.githubClientClass = class { 
+      createPullRequest() { return Promise.resolve("https://github.com/mock/pull/1"); } 
     };
   }
 
-  // Huffman compressor
   try {
-    const { HuffmanCompressor } =
-      await import('./../src/compressor.js');
-
+    const { HuffmanCompressor } = await import('./../src/compressor.js');
     state.compressorModule = new HuffmanCompressor();
-  } catch (e) {
-    console.warn(
-      "⚠️ ./../src/compressor.js não encontrado. Texto puro ativado."
-    );
-
-    state.compressorModule = {
-      decode: (buf) => new TextDecoder().decode(buf),
-      deserializeTree: () => {}
-    };
+  } catch(e) {
+    console.warn("⚠️ ./../src/compressor.js não encontrado. Texto puro ativado.");
+    state.compressorModule = { decode: (buf) => new TextDecoder().decode(buf) };
   }
-
-  // 1.2 Tenta carregar os dados
+  
+  // 1.2 Tenta carregar os dados (Tolerante a repositório vazio)
   try {
-    // ---------------------------------------------------------
-    // TREE
-    // ---------------------------------------------------------
     const treeRes = await fetch('./../cache/tree.dat').catch(() => null);
-
     if (treeRes && treeRes.ok) {
       const buffer = await treeRes.arrayBuffer();
-
-      if (
-        buffer.byteLength > 0 &&
-        typeof state.treeManager.deserialize === 'function'
-      ) {
-        state.treeManager.deserialize(
-          new Uint8Array(buffer)
-        );
+      if (buffer.byteLength > 0 && typeof state.treeManager.deserialize === 'function') {
+        state.treeManager.deserialize(new Uint8Array(buffer));
       }
     }
-
-    // ---------------------------------------------------------
-    // ARTICLES CATALOG
-    // ---------------------------------------------------------
-    const articlesRes =
-      await fetch('./../cache/articles.dat').catch(() => null);
-
+    
+    const articlesRes = await fetch('./../cache/articles.dat').catch(() => null);
     if (articlesRes && articlesRes.ok) {
       const text = await articlesRes.text();
-
       if (text.trim().length > 0) {
         try {
           const articles = JSON.parse(text);
-
-          articles.forEach(art => {
-            state.articlesCatalog[art.article_id] = art;
-          });
-        } catch (e) {
-          console.warn(
-            "⚠️ articles.dat não é um JSON válido ainda."
-          );
-        }
+          articles.forEach(art => { state.articlesCatalog[art.article_id] = art; });
+        } catch (e) { console.warn("articles.dat não é um JSON válido ainda."); }
       }
     }
 
-    // ---------------------------------------------------------
-    // HUFFMAN TREE
-    // ---------------------------------------------------------
-    const htreeRes =
-      await fetch('./../cache/htree.dat').catch(() => null);
+    const htreeRes = await fetch('./../cache/htree.dat').catch(() => null);
+    if (htreeRes && htreeRes.ok) state.htreeData = await htreeRes.arrayBuffer();
 
-    if (htreeRes && htreeRes.ok) {
-      const htreeBuffer = await htreeRes.arrayBuffer();
 
-      // Guarda o ArrayBuffer caso outras partes da aplicação
-      // precisem dele.
-      state.htreeData = htreeBuffer;
-
-      // Reconstrói a árvore Huffman.
-      if (
-        htreeBuffer.byteLength > 0 &&
-        typeof state.compressorModule.deserializeTree === 'function'
-      ) {
-        state.compressorModule.deserializeTree(
-          new Uint8Array(htreeBuffer)
-        );
-
-        console.log("✅ Árvore Huffman carregada.");
-      }
-    } else {
-      console.warn("⚠️ htree.dat não encontrado.");
+    if (!htreeRes.ok) {
+      throw new Error('Não foi possível carregar htree.dat');
     }
+
+    const htreeBuffer = await htreeRes.arrayBuffer();
+
+    state.compressorModule.deserializeTree(
+      new Uint8Array(htreeBuffer)
+    );
 
   } catch (err) {
-    console.warn(
-      "⚠️ Erro ao buscar arquivos locais:",
-      err
-    );
+    console.warn("Erro ao buscar arquivos locais:", err);
   } finally {
-    // 1.3 Atualiza a interface independentemente de ter dado erro
+    // 1.3 Atualiza a interface independentemente de ter dado erro ou não
     renderArticleList();
     renderCategoryTree();
-
-    if (Object.keys(state.articlesCatalog).length === 0) {
-      DOM.articleList.innerHTML =
-        '<li><i>Nenhum artigo encontrado.</i></li>';
+    
+    if(Object.keys(state.articlesCatalog).length === 0) {
+      DOM.articleList.innerHTML = '<li><i>Nenhum artigo encontrado.</i></li>';
     }
   }
 }
-
 
 // --- 2. RENDERIZAÇÃO ---
 function renderArticleList() {
