@@ -525,14 +525,18 @@ function createSearchResultCard(result) {
    * articles.dat resolve o metadata.
    */
 
+  console.log(f`result: ${result}`)
   const articleId =
     result.id;
 
   const meta =
     state.articlesCatalog.get(articleId);
 
-  const title =
-    meta?.title || articleId;
+  if (meta != undefined){
+    const title = meta.title;
+  } else {
+    const title = articleId;
+  }
 
   const card =
     document.createElement("article");
