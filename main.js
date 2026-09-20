@@ -103,7 +103,7 @@ async function init() {
     console.log("end of init");
 
   } catch (err) {
-    console.error('Erro na inicialização:', err);
+    console.log('Erro na inicialização:', err);
     //DOM.taxonomyTree.innerHTML = `<p class="loading-text">Erro ao carregar o acervo.</p>`;
   }
 }
