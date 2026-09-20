@@ -9,16 +9,17 @@ import path from "node:path";
 await mkdir("./cache", { recursive: true });
 await mkdir("./articles", { recursive: true });
 
-// Read every uncompressed file from ./tmp
 const uncompressed_files = await readFiles("cache/", "./tmp/");
+console.log(`Found ${uncompressed_files.size} files`);
 
-for (const key of Object.keys(uncompressed_files)) {
+const uncompressed_files_clean = new Map();
+
+for (const [key, value] of uncompressed_files) {
   const newKey = key.replace("./tmp/", "");
-  uncompressed_files[newKey] = uncompressed_files[key];
-  delete uncompressed_files[key];
+  uncompressed_files_clean.set(newKey, value);
 }
 
-console.log(`Found ${uncompressed_files.size} files`);
+console.log(`Found ${uncompressed_files_clean.size} files`);
 
 // ---------------------------------------------------------
 // Build TF-IDF search index
@@ -27,7 +28,7 @@ console.log(`Found ${uncompressed_files.size} files`);
 console.log("Building search index...");
 
 const search_index = tf_idf.build_index(
-  Object.fromEntries(uncompressed_files)
+  Object.fromEntries(uncompressed_files_clean)
 );
 
 await writeFile(
@@ -46,7 +47,7 @@ console.log(
 const {
   shared_index,
   compressed_files_content_map
-} = Huffman.compress(uncompressed_files);
+} = Huffman.compress(uncompressed_files_clean);
 
 // Write the shared Huffman index
 await writeFile(
