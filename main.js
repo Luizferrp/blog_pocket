@@ -524,7 +524,19 @@ function createSearchResultCard(result) {
    */
 
   const articleId =
-    result.id;
+    result.id ??
+    result.article_id ??
+    result.doc ??
+    result.document_id;
+
+  const article =
+    state.articles.get(String(articleId));
+
+  const title =
+    article?.title ??
+    article?.name ??
+    articleId ??
+    "Artigo sem título";
 
   const meta =
     state.articlesCatalog.get(articleId);
@@ -546,9 +558,13 @@ function createSearchResultCard(result) {
     <h3>${escapeHtml(title)}</h3>
 
     <p>
-      Relevância:
-      ${result.score.toFixed(3)}
+      ${escapeHtml(String(articleId))}
     </p>
+
+    <small>
+      Relevância: ${result.score.toFixed(3)}
+    </small>
+    </div>
   `;
 
   card.addEventListener(
