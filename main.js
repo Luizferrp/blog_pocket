@@ -438,8 +438,13 @@ async function executeSearch(query) {
      * ]
      */
 
+    console.log(`query: ${query}`);
     const results =
       engine.search(query, 10);
+
+    for (const result in results){
+      console.log(result);
+    }
 
     renderSearchResults(
       results,
