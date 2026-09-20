@@ -187,7 +187,7 @@ async function loadAndRenderArticle(articleId) {
   DOM.articleView.classList.remove('hidden');
   
   DOM.articleTitle.textContent = meta.title;
-  DOM.articleMeta.textContent = `ID: ${articleId} | Modificado em: ${meta.modified || 'N/A'}`;
+  DOM.articleMeta.textContent = `ID: ${articleId}`;
   DOM.articleBody.innerHTML = '';
   DOM.articleStatus.classList.remove('hidden');
 
@@ -196,7 +196,7 @@ async function loadAndRenderArticle(articleId) {
     if (!state.htreeData || !state.compressorModule) {
       const [htreeRes, compressorMod] = await Promise.all([
         fetch('./cache/htree.dat'),
-        import('./src/compressor.js')
+        import('./src/ .js')
       ]);
 
       if (!htreeRes.ok) throw new Error('Erro ao baixar a árvore de Huffman.');
