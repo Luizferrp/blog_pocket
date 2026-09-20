@@ -93,13 +93,17 @@ async function init() {
       state.articlesCatalog[art.article_id] = art;
     });
 
+    console.log("renderTaxonomyTree");
     renderTaxonomyTree();
+    console.log("renderLuckySection");
     renderLuckySection();
+    console.log("bindEvents");
     bindEvents();
+    console.log("end of init");
 
   } catch (err) {
     console.error('Erro na inicialização:', err);
-    DOM.taxonomyTree.innerHTML = `<p class="loading-text">Erro ao carregar o acervo.</p>`;
+    //DOM.taxonomyTree.innerHTML = `<p class="loading-text">Erro ao carregar o acervo.</p>`;
   }
 }
 
