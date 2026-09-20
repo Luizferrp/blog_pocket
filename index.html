@@ -27,22 +27,33 @@
   <!-- Conteúdo Principal / Feed Dinâmico -->
   <main class="container main-content">
     <section class="controls-bar">
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Buscar registros..." />
-      </div>
+      <form id="search-form" class="search-box">
+        <input
+          type="search"
+          id="search-input"
+          placeholder="Buscar registros..."
+          autocomplete="off"
+        />
+        <button type="submit">Buscar</button>
+      </form>
     </section>
+
     <section id="search-results-section" hidden>
       <div id="search-results"></div>
     </section>
 
-    <!-- Indicador de Carregamento -->
+    <section id="navigation-section">
+      <div id="navigation-header"></div>
+      <div id="cards-grid" class="cards-grid"></div>
+    </section>
+
     <div id="loading-spinner" class="spinner-container hidden">
       <div class="spinner"></div>
       <p>Carregando dados...</p>
     </div>
 
-    <!-- Mensagens de Erro/Alerta -->
     <div id="status-message" class="alert-box hidden"></div>
+
 
     <!-- Grid de Cards Renderizados Dinamicamente -->
     <section id="cards-grid" class="cards-grid">
@@ -77,7 +88,10 @@
   <script type="module" src="main.js"></script>
   <script type="module" src="src/articles_catalog.js"></script>
   <script type="module" src="src/compressor.js"></script>
+  <script type="module" src="src/huffman_tree.js"></script>
+  <script type="module" src="src/search.js"></script>
   <script type="module" src="src/tree.js"></script>
+  <script type="module" src="src/util.js"></script>
 
 </body>
 </html>
