@@ -525,7 +525,7 @@ function createSearchResultCard(result) {
    * articles.dat resolve o metadata.
    */
 
-  console.log(f`result: ${result}`)
+  console.log(`result: ${result}`)
   const articleId =
     result.id;
 
