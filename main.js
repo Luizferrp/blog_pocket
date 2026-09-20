@@ -441,9 +441,7 @@ async function executeSearch(query) {
     const results =
       engine.search(query, 10);
 
-    for (const result of results){
-      console.log(result);
-    }
+
     renderSearchResults(
       results,
       query
@@ -525,14 +523,16 @@ function createSearchResultCard(result) {
    * articles.dat resolve o metadata.
    */
 
-  console.log(`result: ${result}`)
   const articleId =
     result.id;
 
   const meta =
     state.articlesCatalog.get(articleId);
 
-  const title = articleId;
+  const title =
+    meta?.title || articleId;
+
+  console.log(title, articleId)
 
   const card =
     document.createElement("article");
