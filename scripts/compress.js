@@ -12,6 +12,12 @@ await mkdir("./articles", { recursive: true });
 // Read every uncompressed file from ./tmp
 const uncompressed_files = await readFiles("cache/", "./tmp/");
 
+for (const key of Object.keys(uncompressed_files)) {
+  const newKey = key.replace("./tmp/", "");
+  uncompressed_files[newKey] = uncompressed_files[key];
+  delete uncompressed_files[key];
+}
+
 console.log(`Found ${uncompressed_files.size} files`);
 
 // ---------------------------------------------------------
