@@ -66,7 +66,9 @@ const DOM = {
 };
 
 async function init() {
+  console.log("init");
   try {
+    console.log("try");
     const [treeRes, articlesRes] = await Promise.all([
       fetch('./cache/tree.dat'),
       fetch('./cache/articles.dat')
@@ -75,13 +77,16 @@ async function init() {
     if (!treeRes.ok || !articlesRes.ok) {
       throw new Error('Falha ao carregar os dados de cache do sistema.');
     }
+    console.log("dados de cache carregados");
 
     const treeBuffer = await treeRes.arrayBuffer();
+    console.log("treeBuffer carregado");
     const articlesJson = await articlesRes.json();
+    console.log("articlesJson carregado");
 
-    // Ajuste 2: Instanciar a classe correta e desserializar
+    console.log("Ajuste 2: Instanciar a classe correta e desserializar");
     state.treeManager = new TaxonomyTree();
-    // A API arrayBuffer() retorna ArrayBuffer, o tree.js espera Uint8Array
+    console.log("A API arrayBuffer() retorna ArrayBuffer, o tree.js espera Uint8Array");
     state.treeManager.deserialize(new Uint8Array(treeBuffer)); 
     
     articlesJson.forEach(art => {
