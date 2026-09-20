@@ -1,5 +1,40 @@
 import { TaxonomyTree, TreeNode } from './src/tree.js'; // Ajuste 1: Importar a classe correta e o TreeNode para checagem de tipo
 
+let search_engine = null;
+let search_loading = null;
+
+async function getSearchEngine() {
+  // Já carregado
+  if (search_engine) {
+    return search_engine;
+  }
+
+  // Já existe um carregamento em andamento
+  if (search_loading) {
+    return search_loading;
+  }
+
+  search_loading = fetch("/cache/search.dat")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(
+          `Não foi possível carregar search.dat: ${response.status}`
+        );
+      }
+
+      return response.arrayBuffer();
+    })
+    .then(buffer => {
+      search_engine = new tf_idf(buffer);
+      return search_engine;
+    })
+    .finally(() => {
+      search_loading = null;
+    });
+
+  return search_loading;
+}
+
 /**
  * Estado Global em Memória no Runtime
  */
@@ -235,11 +270,24 @@ function bindEvents() {
 
   DOM.searchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const query = DOM.searchInput.value.trim();
-    if (!query) return;
 
-    alert(`A busca por "${query}" será acionada (Carregando search.dat + search.js)`);
+    const query = DOM.searchInput.value.trim();
+
+    if (!query) {
+      return;
+    }
+
+    try {
+      const engine = await getSearchEngine();
+
+      const results = engine.search(query, 5);
+
+      renderSearchResults(results, query);
+    } catch (error) {
+      console.error("Erro na busca:", error);
+    }
   });
+
 }
 
 // Inicializa a aplicação
