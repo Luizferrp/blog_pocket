@@ -15,7 +15,8 @@ console.log(`Found ${uncompressed_files.size} files`);
 const uncompressed_files_clean = new Map();
 
 for (const [key, value] of uncompressed_files) {
-  const newKey = key.replace("./tmp/", "");
+  const newKey = key.replace("./tmp/", "").replace(".dat", "");
+
   uncompressed_files_clean.set(newKey, value);
 }
 
