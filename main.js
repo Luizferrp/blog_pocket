@@ -441,7 +441,6 @@ async function executeSearch(query) {
     const results =
       engine.search(query, 10);
 
-
     renderSearchResults(
       results,
       query
@@ -524,24 +523,13 @@ function createSearchResultCard(result) {
    */
 
   const articleId =
-    result.id ??
-    result.article_id ??
-    result.doc ??
-    result.document_id;
-
-  const article =
-    state.articles.get(String(articleId));
-
-  const title =
-    article?.title ??
-    article?.name ??
-    articleId ??
-    "Artigo sem título";
+    result.id;
 
   const meta =
     state.articlesCatalog.get(articleId);
 
-  console.log(title, articleId)
+  const title =
+    meta?.title || articleId;
 
   const card =
     document.createElement("article");
@@ -555,13 +543,9 @@ function createSearchResultCard(result) {
     <h3>${escapeHtml(title)}</h3>
 
     <p>
-      ${escapeHtml(String(articleId))}
+      Relevância:
+      ${result.score.toFixed(3)}
     </p>
-
-    <small>
-      Relevância: ${result.score.toFixed(3)}
-    </small>
-    </div>
   `;
 
   card.addEventListener(
@@ -599,7 +583,6 @@ async function loadAndRenderArticle(
    * colocar sua implementação aqui.
    */
 
-  console.log(articleId);
   const meta =
     state.articlesCatalog.get(articleId);
 
