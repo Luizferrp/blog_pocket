@@ -80,6 +80,7 @@ async function init() {
     console.log("dados de cache carregados");
 
     const treeBuffer = await treeRes.arrayBuffer();
+    const uint8View = new Uint8Array(treeBuffer);
     console.log("treeBuffer carregado");
     const articlesJson = await articlesRes.json();
     console.log("articlesJson carregado");
@@ -87,7 +88,7 @@ async function init() {
     console.log("Ajuste 2: Instanciar a classe correta e desserializar");
     state.treeManager = new TaxonomyTree();
     console.log("A API arrayBuffer() retorna ArrayBuffer, o tree.js espera Uint8Array");
-    state.treeManager.deserialize(new Uint8Array(treeBuffer)); 
+    state.treeManager.deserialize(new Uint8Array(uint8View)); 
     
     articlesJson.forEach(art => {
       state.articlesCatalog[art.article_id] = art;
