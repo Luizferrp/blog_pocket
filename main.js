@@ -441,6 +441,9 @@ async function executeSearch(query) {
     const results =
       engine.search(query, 10);
 
+    for (const result of results){
+      console.log(result);
+    }
     renderSearchResults(
       results,
       query
