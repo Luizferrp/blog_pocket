@@ -1,5 +1,7 @@
 import { readFiles } from "../src/util.js";
 import { Huffman } from "../src/huffman_tree.js";
+import { tf_idf } from "../src/search.js";
+
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -12,7 +14,29 @@ const uncompressed_files = await readFiles("cache/", "./tmp/");
 
 console.log(`Found ${uncompressed_files.size} files`);
 
+// ---------------------------------------------------------
+// Build TF-IDF search index
+// ---------------------------------------------------------
+
+console.log("Building search index...");
+
+const search_index = tf_idf.build_index(
+  Object.fromEntries(uncompressed_files)
+);
+
+await writeFile(
+  "./cache/search.dat",
+  search_index
+);
+
+console.log(
+  `Search index written to ./cache/search.dat (${search_index.byteLength} bytes)`
+);
+
+// ---------------------------------------------------------
 // Compress all files using one shared Huffman tree
+// ---------------------------------------------------------
+
 const {
   shared_index,
   compressed_files_content_map
@@ -48,3 +72,4 @@ for (
 }
 
 console.log("Compression complete.");
+console.log("Cache update complete.");

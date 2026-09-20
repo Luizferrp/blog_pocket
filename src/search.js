@@ -1,4 +1,4 @@
-class tf_idf {
+export class tf_idf {
     /*
      * Binary format
      *
