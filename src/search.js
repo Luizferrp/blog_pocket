@@ -485,13 +485,13 @@ export class tf_idf {
 
         for (const [documentId, score] of scores) {
             results.push({
-                filename: this.getFilename(documentId),
+                id: this.getFilename(documentId),
                 score
             });
         }
 
         results.sort((a, b) => b.score - a.score);
-
+        console.log(`tfidf: search: ${results}`)
         return results.slice(0, limit);
     }
 
