@@ -18,7 +18,7 @@ const state = {
 
   // Huffman
   htreeData: null,
-  compressorModule: null,
+  huffman: null,
 
   // navegação
   navigationStack: [],
@@ -577,19 +577,8 @@ function hideSearch() {
 // ARTIGO
 // ============================================================
 
-async function loadAndRenderArticle(
-  articleId
-) {
-  /*
-   * Por enquanto seu HTML atual não mostrou
-   * uma área article-view.
-   *
-   * Se ela ainda existir no projeto, você pode
-   * colocar sua implementação aqui.
-   */
-
-  const meta =
-    state.articlesCatalog.get(articleId);
+async function loadAndRenderArticle(articleId) {
+  const meta = state.articlesCatalog.get(articleId);
 
   if (!meta) {
     showError(
@@ -603,20 +592,12 @@ async function loadAndRenderArticle(
     showLoading(true);
 
     /*
-     * Carregamos a árvore Huffman somente
-     * quando o primeiro artigo for aberto.
+     * Carrega a árvore Huffman compartilhada somente
+     * na primeira abertura de um artigo.
      */
-    if (
-      !state.htreeData ||
-      !state.compressorModule
-    ) {
-      const [
-        htreeResponse,
-        compressorModule
-      ] = await Promise.all([
-        fetch("./cache/htree.dat"),
-        import("./src/compressor.js"),
-      ]);
+    if (!state.huffman) {
+      const htreeResponse =
+        await fetch("./cache/htree.dat");
 
       if (!htreeResponse.ok) {
         throw new Error(
@@ -624,20 +605,23 @@ async function loadAndRenderArticle(
         );
       }
 
-      state.htreeData =
+      const htreeBuffer =
         await htreeResponse.arrayBuffer();
 
-      state.compressorModule =
-        compressorModule;
+      /*
+       * Reconstrói a mesma árvore usada durante
+       * a compressão dos artigos.
+       */
+      state.huffman =
+        new Huffman(htreeBuffer);
     }
-
 
     /*
      * Baixa somente o artigo solicitado.
      */
     const response =
       await fetch(
-        `./articles/${articleId}.dat`
+        `./articles/${encodeURIComponent(articleId)}.dat`
       );
 
     if (!response.ok) {
@@ -649,20 +633,16 @@ async function loadAndRenderArticle(
     const compressedBuffer =
       await response.arrayBuffer();
 
-
     /*
-     * Descomprime.
+     * Descomprime usando a árvore compartilhada.
      */
     const text =
-      state.compressorModule.decode(
-        compressedBuffer,
-        state.htreeData
+      state.huffman.uncompress(
+        compressedBuffer
       );
 
-
     /*
-     * Aqui você pode chamar seu sistema atual
-     * de visualização do artigo.
+     * Renderiza o artigo.
      */
     showArticle(
       articleId,
@@ -671,7 +651,10 @@ async function loadAndRenderArticle(
     );
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      "Erro ao carregar artigo:",
+      error
+    );
 
     showError(
       "Erro ao carregar o artigo."
