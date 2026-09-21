@@ -1,4 +1,5 @@
 import { tf_idf } from "./src/search.js";
+import { Huffman } from './src/huffman_tree.js';
 
 
 // ============================================================
@@ -6,24 +7,10 @@ import { tf_idf } from "./src/search.js";
 // ============================================================
 
 const state = {
-  // tree.dat
-  tree: null,
-
-  // articles.dat
+  treeManager: null,
   articlesCatalog: new Map(),
-
-  // search.dat
-  searchEngine: null,
-  searchLoading: null,
-
-  // Huffman
-  htreeData: null,
   huffman: null,
-
-  // navegação
-  navigationStack: [],
 };
-
 
 // ============================================================
 // DOM
