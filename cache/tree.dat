@@ -1,7 +1,7 @@
 {
   "velho_testamento": {
-    "pentateuch": {
-      "chapters": [
+    "pentateucos": {
+      "artigos": [
         "genesis_1",
         "exodus_1",
         "leviticus_1",
@@ -9,8 +9,8 @@
         "deuteronomy_1"
       ]
     },
-    "historias": {
-      "chapters": [
+    "historia": {
+      "artigos": [
         "joshua_1",
         "judges_1",
         "ruth_1",
@@ -25,14 +25,15 @@
       ]
     },
     "criacao": {
-      "chapters": [
+      "artigos": [
         "genesis_1"
       ]
     },
-    "chapters": []
+    "artigos": []
   },
+
   "novo_testamento": {
-    "chapters": [
+    "artigos": [
       "matthew_1",
       "mark_1",
       "luke_1",
@@ -62,8 +63,9 @@
       "revelation_1"
     ]
   },
+
   "livros_da_sabedoria": {
-    "chapters": [
+    "artigos": [
       "job_1",
       "psalms_1",
       "proverbs_1",
@@ -71,9 +73,10 @@
       "song_of_songs_1"
     ]
   },
+
   "profetas": {
     "maiores": {
-      "chapters": [
+      "artigos": [
         "isaiah_1",
         "jeremiah_1",
         "lamentations_1",
@@ -82,7 +85,7 @@
       ]
     },
     "menores": {
-      "chapters": [
+      "artigos": [
         "hosea_1",
         "joel_1",
         "amos_1",
@@ -97,6 +100,6 @@
         "malachi_1"
       ]
     },
-    "chapters": []
+    "artigos": []
   }
 }
