@@ -83,13 +83,11 @@ async function init() {
 
     const htreeRes = await fetch('./../cache/htree.dat').catch(() => null);
     if (htreeRes && htreeRes.ok) state.htreeData = await htreeRes.arrayBuffer();
-
+    console.log('huffman tree loaded');
 
     if (!htreeRes.ok) {
       throw new Error('Não foi possível carregar htree.dat');
     }
-
-    const htreeBuffer = await htreeRes.arrayBuffer();
 
     state.compressorModule.deserializeTree(
       new Uint8Array(htreeBuffer)
