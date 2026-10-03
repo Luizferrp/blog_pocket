@@ -7,7 +7,8 @@ const state = {
   htreeData: null,
   compressorModule: null,
   currentArticleId: null,
-  isNewArticle: false
+  isNewArticle: false,
+  isInited: false
 };
 
 const DOM = {
@@ -28,8 +29,11 @@ const DOM = {
 
 // --- 1. BOOTSTRAP (Carrega dependências e arquivos de forma segura) ---
 async function init() {
+  console.log('start init');
+  state.isInited = true;
   loadConfig(); 
-  
+  console.log('config loaded');
+
   // 1.1 Tenta importar os módulos. Se falhar, cria "mocks" (dublês) para a UI não travar.
   try {
     const treeMod = await import('./../src/tree.js');
@@ -90,7 +94,7 @@ async function init() {
     }
 
     state.compressorModule.deserializeTree(
-      new Uint8Array(htreeBuffer)
+      new Uint8Array(state.htreeData)
     );
 
   } catch (err) {
@@ -279,3 +283,7 @@ function loadConfig() {
 
 // Inicia
 document.addEventListener('DOMContentLoaded', init);
+
+if (isInited == false) {
+  init();
+}
