@@ -30,6 +30,10 @@ const DOM = {
 // --- 1. BOOTSTRAP (Carrega dependências e arquivos de forma segura) ---
 async function init() {
   console.log('start init');
+  if (state.isInited) {
+    return 0;
+  }
+
   state.isInited = true;
   loadConfig(); 
   console.log('config loaded');
@@ -202,6 +206,9 @@ async function loadArticle(articleId) {
     if (res && res.ok) {
       const buffer = await res.arrayBuffer();
       DOM.editorContent.value = state.compressorModule.decode(buffer, state.htreeData);
+      console.log('----');
+      console.log(DOM.editorContent.value);
+      console.log('----');
     } else {
       throw new Error("Arquivo não encontrado localmente.");
     }
@@ -283,7 +290,3 @@ function loadConfig() {
 
 // Inicia
 document.addEventListener('DOMContentLoaded', init);
-
-if (isInited == false) {
-  init();
-}
