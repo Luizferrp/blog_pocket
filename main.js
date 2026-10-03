@@ -565,7 +565,6 @@ function hideSearch() {
 // ============================================================
 
 async function loadAndRenderArticle(articleId) {
-  console.log(`Carregando artigo "${articleId}"...`)
   const meta = state.articlesCatalog.get(articleId);
 
   if (!meta) {
